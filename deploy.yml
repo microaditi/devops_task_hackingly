@@ -1,0 +1,43 @@
+name: Deploy to EC2 using Docker
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2 
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: microaditi
+          password: ${{ secrets.DOCKER_PASSWORD }}  
+      - name: Build Docker image
+        run: |
+          docker build -t microaditi/my-app:latest . 
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push microaditi/my-app:latest 
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa 
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 13.219.82.40  >> ~/.ssh/known_hosts  
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@13.219.82.40 << 'EOF'
+            cd /home/ubuntu/devops_task_hackingly
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
+          EOF
+
