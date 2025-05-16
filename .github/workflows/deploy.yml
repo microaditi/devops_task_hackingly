@@ -38,8 +38,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@13.219.82.40 << 'EOF'
             cd /home/ubuntu/devops_task_hackingly
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
+            docker compose down
+            docker compose pull
+            docker compose up -d
           EOF
 
